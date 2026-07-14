@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(express.static(path.join(__dirname, "public")));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 app.post("/api/generate", async (req, res) => {
