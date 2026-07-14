@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Playground</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: rgba(10, 23, 43, 0.82);
+      --panel-strong: rgba(17, 30, 54, 0.95);
+      --text: #f4f7fb;
+      --muted: #93a3be;
+      --accent: #7c5cff;
+      --accent-2: #27d7c4;
+      --border: rgba(255, 255, 255, 0.12);
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(124, 92, 255, 0.35), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(39, 215, 196, 0.25), transparent 34%),
+        var(--bg);
+      padding: 24px;
+      overflow-x: hidden;
+    }
+
+    .bg-orb {
+      position: fixed;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      filter: blur(70px);
+      opacity: 0.2;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .orb-one { top: -80px; left: -50px; background: var(--accent); }
+    .orb-two { bottom: -100px; right: -40px; background: var(--accent-2); }
+
+    .app-shell {
+      position: relative;
+      z-index: 1;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      margin-bottom: 22px;
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      font-size: 0.85rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 700px;
+    }
+
+    .stat-card {
+      min-width: 260px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--panel-strong);
+      border: 1px solid var(--border);
+    }
+
+    .stat-pill {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 999px;
+      background: rgba(39, 215, 196, 0.16);
+      color: var(--accent-2);
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: var(--muted);
+    }
+    .stat-row strong { color: var(--text); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 22px;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: var(--panel);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+    }
+
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .card h2 { margin: 0; font-size: 1.15rem; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: rgba(124, 92, 255, 0.16);
+      color: #d8cbff;
+    }
+
+    .chip.neutral { background: rgba(255,255,255,0.08); color: var(--muted); }
+    .chip.success { background: rgba(39,215,196,0.16); color: var(--accent-2); }
+    .chip.error { background: rgba(255,92,92,0.16); color: #ffb3b3; }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 10px;
+    }
+
+    textarea, input[type="number"], input[type="range"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      outline: none;
+      transition: 180ms ease;
+    }
+
+    textarea:focus, input[type="number"]:focus, input[type="range"]:focus {
+      border-color: rgba(124, 92, 255, 0.75);
+      box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.16);
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+      margin-top: 6px;
+      font-size: 0.98rem;
+      line-height: 1.5;
+    }
+
+    .param-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .param {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+    }
+
+    .param .value {
+      display: inline-block;
+      margin-top: 8px;
+      font-weight: 700;
+      color: var(--accent-2);
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      padding: 12px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), #a04cff);
+      box-shadow: 0 10px 22px rgba(124, 92, 255, 0.28);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 12px 24px rgba(124, 92, 255, 0.32); }
+    button.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .history-section { margin-top: 16px; }
+    .history-section h3 { margin: 0 0 8px; font-size: 0.95rem; }
+    #historyList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    #historyList li {
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text);
+      transition: background 180ms ease;
+    }
+    #historyList li:hover { background: rgba(124,92,255,0.12); }
+
+    .response-box {
+      min-height: 220px;
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(7, 16, 31, 0.86);
+      border: 1px solid var(--border);
+      color: #eaf4ff;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+
+    pre {
+      margin: 0;
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(7, 16, 31, 0.86);
+      border: 1px solid var(--border);
+      color: #9fe3ff;
+      font-size: 0.9rem;
+      overflow: auto;
+      max-height: 280px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .hero { flex-direction: column; align-items: flex-start; }
+      .stat-card { width: 100%; min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb orb-one"></div>
+  <div class="bg-orb orb-two"></div>
+
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">AI • Prompt Playground</p>
+        <h1>Design prompts that feel like magic.</h1>
+        <p>Create, test, and refine Gemini prompts with a polished interface that is presentation-ready for your portfolio or resume.</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-pill">Live Demo</div>
+        <div class="stat-row"><span>Temperature</span><strong id="tempMini">0.7</strong></div>
+        <div class="stat-row"><span>Max Tokens</span><strong id="tokensMini">1000</strong></div>
+        <div class="stat-row"><span>Top-P</span><strong id="topPMini">0.95</strong></div>
+      </div>
+    </header>
+
+    <section class="grid">
+      <div class="card">
+        <div class="card-title-row">
+          <h2>Prompt Builder</h2>
+          <span class="chip">Interactive</span>
+        </div>
+
+        <label for="promptInput">
+          Prompt
+          <textarea id="promptInput" placeholder="Write a prompt for your AI model..."></textarea>
+        </label>
+
+        <div class="param-grid">
+          <div class="param">
+            <label for="temp">Temperature</label>
+            <input type="range" id="temp" min="0" max="2" step="0.1" value="0.7" />
+            <span class="value" id="tempVal">0.7</span>
+          </div>
+
+          <div class="param">
+            <label for="maxTokens">Max Tokens</label>
+            <input type="number" id="maxTokens" value="1000" min="100" step="100" />
+          </div>
+
+          <div class="param">
+            <label for="topP">Top-P</label>
+            <input type="range" id="topP" min="0" max="1" step="0.05" value="0.95" />
+            <span class="value" id="topPVal">0.95</span>
+          </div>
+
+          <div class="param">
+            <label>Ready State</label>
+            <div id="statusBadge" class="chip neutral">Ready</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="runBtn">Run Prompt</button>
+          <button id="clearBtn" class="ghost">Clear</button>
+        </div>
+
+        <div class="history-section">
+          <h3>Recent Prompts</h3>
+          <ul id="historyList"></ul>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title-row">
+          <h2>Response Studio</h2>
+          <span id="statusBadgeRight" class="chip neutral">Awaiting input</span>
+        </div>
+
+        <div id="textOutput" class="response-box">Your AI response will appear here.</div>
+        <h3 style="margin: 10px 0 8px; font-size: 0.95rem;">Raw JSON</h3>
+        <pre id="jsonOutput">{}</pre>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const promptInput = document.getElementById('promptInput');
+    const tempInput = document.getElementById('temp');
+    const topPInput = document.getElementById('topP');
+    const maxTokensInput = document.getElementById('maxTokens');
+    const tempVal = document.getElementById('tempVal');
+    const topPVal = document.getElementById('topPVal');
+    const tempMini = document.getElementById('tempMini');
+    const tokensMini = document.getElementById('tokensMini');
+    const topPMini = document.getElementById('topPMini');
+    const statusBadge = document.getElementById('statusBadge');
+    const statusBadgeRight = document.getElementById('statusBadgeRight');
+    const textOutput = document.getElementById('textOutput');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const historyList = document.getElementById('historyList');
+
+    const setStatus = (label, type = 'neutral') => {
+      const badge = statusBadgeRight;
+      badge.className = `chip ${type}`;
+      badge.textContent = label;
+      statusBadge.className = `chip ${type}`;
+      statusBadge.textContent = label;
+    };
+
+    const updateReadouts = () => {
+      tempVal.textContent = tempInput.value;
+      topPVal.textContent = topPInput.value;
+      tempMini.textContent = tempInput.value;
+      tokensMini.textContent = maxTokensInput.value;
+      topPMini.textContent = topPInput.value;
+    };
+
+    const renderHistory = () => {
+      const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+      historyList.innerHTML = '';
+      history.forEach((item) => {
+        const li = document.createElement('li');
+        const text = item.length > 45 ? item.slice(0, 45) + '...' : item;
+        li.textContent = text;
+        li.onclick = () => {
+          promptInput.value = item;
+          promptInput.focus();
+        };
+        historyList.appendChild(li);
+      });
+    };
+
+    document.getElementById('temp').addEventListener('input', updateReadouts);
+    document.getElementById('topP').addEventListener('input', updateReadouts);
+    document.getElementById('maxTokens').addEventListener('input', updateReadouts);
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      promptInput.value = '';
+      textOutput.textContent = 'Your AI response will appear here.';
+      jsonOutput.textContent = '{}';
+      setStatus('Ready');
+    });
+
+    document.getElementById('runBtn').addEventListener('click', async () => {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        setStatus('Enter a prompt', 'error');
+        textOutput.textContent = 'Please enter a prompt before running the model.';
+        return;
+      }
+
+      setStatus('Generating...', 'neutral');
+      textOutput.textContent = 'Thinking...';
+      jsonOutput.textContent = 'Loading response...';
+
+      const payload = {
+        prompt,
+        temperature: parseFloat(tempInput.value),
+        maxTokens: parseInt(maxTokensInput.value, 10),
+        topP: parseFloat(topPInput.value)
+      };
+
+      const history = JSON.parse(localStorage.getItem('promptHistory') || '[]');
+      const nextHistory = [prompt, ...history.filter((item) => item !== prompt)].slice(0, 6);
+      localStorage.setItem('promptHistory', JSON.stringify(nextHistory));
+      renderHistory();
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || 'The request failed.');
+        }
+
+        textOutput.textContent = data.response || 'No response returned.';
+        jsonOutput.textContent = JSON.stringify(data, null, 2);
+        setStatus('Completed', 'success');
+      } catch (error) {
+        textOutput.textContent = 'Unable to generate a response right now.';
+        jsonOutput.textContent = JSON.stringify({ error: error.message }, null, 2);
+        setStatus('Failed', 'error');
+      }
+    });
+
+    window.addEventListener('load', () => {
+      updateReadouts();
+      renderHistory();
+    });
+  </script>
+</body>
+</html>
